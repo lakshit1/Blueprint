@@ -16,6 +16,7 @@
 package jahirfiquitiva.libs.blueprint.providers.viewmodels
 
 import android.content.Context
+import android.os.Build
 import android.os.Environment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import jahirfiquitiva.libs.archhelpers.tasks.QAsync
 import jahirfiquitiva.libs.blueprint.R
+import jahirfiquitiva.libs.blueprint.helpers.utils.BL
 import jahirfiquitiva.libs.blueprint.helpers.utils.BPKonfigs
 import jahirfiquitiva.libs.blueprint.quest.App
 import jahirfiquitiva.libs.blueprint.quest.IconRequest
@@ -104,6 +106,7 @@ class RequestsViewModel : ViewModel() {
         data.observe(owner, Observer<MutableList<App>> { r -> r?.let { onUpdated(it) } })
     }
     
+    @Suppress("DEPRECATION")
     private fun internalLoad(
         context: Context,
         debug: Boolean,
@@ -111,6 +114,23 @@ class RequestsViewModel : ViewModel() {
         apiKey: String? = null,
         forceLoad: Boolean = false
                             ) {
+        
+        val externalStorage = try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                @Suppress("DEPRECATION")
+                Environment.getExternalStorageDirectory()
+            } else {
+                @Suppress("DEPRECATION")
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            }
+        } catch (e: Exception) {
+            null
+        }
+        val appStorage = context.getExternalFilesDir(null)
+        val defFolder =
+            if (appStorage?.absolutePath?.contains(context.packageName) == true) externalStorage
+            else appStorage
+        
         val list = IconRequest.get()?.apps.orEmpty()
         if (list.isEmpty() || forceLoad) {
             IconRequest.start(context)
@@ -120,11 +140,7 @@ class RequestsViewModel : ViewModel() {
                 .toEmail(context.getString(R.string.email))
                 .withAPIHost(host.orEmpty())
                 .withAPIKey(apiKey)
-                .saveDir(
-                    File(
-                        context.getString(
-                            R.string.request_save_location,
-                            Environment.getExternalStorageDirectory())))
+                .saveDir(File(context.getString(R.string.request_save_location, defFolder)))
                 .filterXml(R.xml.appfilter)
                 .withTimeLimit(
                     context.int(R.integer.time_limit_in_minutes), BPKonfigs(context).prefs)
