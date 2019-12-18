@@ -192,4 +192,12 @@ Finally, be sure your projects comply with the [license previously mentioned](ht
 
 # 1
 
-<img src="https://github.com/lakshit1/Blueprint/raw/sample/flutter_interact(2).svg"/>
+<img src="./Flutter interact.svg" />
+
+# 2
+
+<img src="./flutter_interact(1).svg" />
+
+# 3
+
+<img src="./flutter_interact(2).svg" />
